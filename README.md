@@ -2,9 +2,9 @@
 
 # documenting the entire project 
 # Ingestion pipeline 
- > Extracting the documents
- > coverting them into chunks
- > embedding the chunks
+ > Extracting the documents>
+ > coverting them into chunks>
+ > embedding the chunks>
  > using chroma db to store
 
 # Extrating the documents 
