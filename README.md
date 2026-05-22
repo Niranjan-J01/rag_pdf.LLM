@@ -1,7 +1,7 @@
 # rag_pdf.LLM
 
 # documenting the entire project 
-** Ingestion pipeline 
+# Ingestion pipeline 
  > Extracting the documents
  > coverting them into chunks
  > embedding the chunks
