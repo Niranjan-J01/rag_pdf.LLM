@@ -11,7 +11,7 @@ from langchain_community.document_loaders import PyMuPDFLoader as pymu , Directo
 #pdf ingestion and data loading
 
 loader = dl(
-    path=r"C:\Users\njnin\OneDrive\Desktop\code\__pycache__\rag_data" , 
+    path=r".\rag_data", 
     glob="*.pdf",
     loader_cls=pymu
 )
@@ -168,7 +168,8 @@ class retrival :
     
 
 retriever = retrival(embedding, vector_database)
-results = retriever.retrival_part(
+"""___________________________________________________________________________________________________"""
+"""results = retriever.retrival_part(
     "retrieval augmented generation",
     score_threshold=0.0
 )
@@ -176,3 +177,96 @@ for doc in results:
     print(f"\nRank: {doc['rank']}")
     print(f"Similarity: {doc['similarity_score']}")
     print(f"Content: {doc['document'][:200]}")
+    ___________________________________________________________________________________________________________-"""
+
+# Integrationn with LLM 
+
+from transformers import AutoTokenizer , AutoModelForCausalLM ,BitsAndBytesConfig, pipeline
+from langchain_huggingface import HuggingFacePipeline 
+
+model_id = "mistralai/Mistral-7B-Instruct-v0.3"
+
+tokenizer = AutoTokenizer.from_pretrained( model_id)
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype="float16"
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    device_map =("auto"),
+    quantization_config=bnb_config,
+    torch_dtype = "auto"
+)
+
+pipe = pipeline(
+    "text-generation",
+    model,
+    tokenizer = tokenizer,
+    max_new_tokens = 500
+)
+
+llm = HuggingFacePipeline(pipeline = pipe)
+
+def ask_rag(qry):
+
+    docs = retriever.retrival_part(
+        qry ,
+        score_threshold=0.35
+    )
+
+    context =[]
+
+    for doc in docs:
+        source = os.path.basename(doc["metadata"].get("file_path" ,"Unknown file"))
+        page = doc["metadata"].get("page" ,"Unknown page")
+        text = doc["document"]
+        context.append(f"Source : {source} Page : {page} /n{text}")
+    prompt =  f"""
+You are a retrieval-based assistant.
+
+Rules:
+
+1. Answer ONLY using the provided context.
+2. If answer not present:
+   "I could not find sufficient information in the provided documents."
+3. If question is unrelated:
+   "This question appears unrelated to the uploaded documents."
+4. Never invent facts, names, dates or numbers.
+5. Answer only supported information.
+6. Always mention the source (file + page) when giving an answer
+
+context = {context}
+
+query = {qry}
+
+Answer : """
+    response = llm.invoke(prompt)
+
+    return response
+
+qry = input("ENTER YOUR QUESTION : ")
+anwer =ask_rag (qry)
+
+print("LEMME THINKING BRUHH PLZ WAIT...")
+print(f"hmmm...alright herewegooo....{anwer}")
+
+    
+
+
+
+
+
+
+
+
+
+        
+
+
+
+        
+        
