@@ -17,8 +17,9 @@
   I created mannual class for embedding, using SentenceTransformer model_name = "all-MiniLM-L6-v2"  to build my foundation aslo to not write the the embedding      part again for query .
 # Chromadb as VectoreDB
   To store vector
-
-  
+# Retrival 
+# LLM Integration
+# prompting $ output !
   
      
     
