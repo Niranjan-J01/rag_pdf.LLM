@@ -71,7 +71,7 @@ class vector_DB():
 
         self.client = chromadb.PersistentClient(path=self.prestistant_directary)
         self.collection = self.client.get_or_create_collection(
-            name = self.collection_name , 
+            name = self.collection_name ,
             metadata = {"discription": " this is Vector DB where vector embedded chunks are stored "}
             )        
         print( "Collection _ Name : ",self.collection_name)
@@ -166,8 +166,8 @@ class retrival :
         
         return retrived_doc
     
-
 retriever = retrival(embedding, vector_database)
+    
 """___________________________________________________________________________________________________"""
 """results = retriever.retrival_part(
     "retrieval augmented generation",
@@ -186,7 +186,9 @@ from langchain_huggingface import HuggingFacePipeline
 
 model_id = "mistralai/Mistral-7B-Instruct-v0.3"
 
-tokenizer = AutoTokenizer.from_pretrained( model_id)
+tokenizer = AutoTokenizer.from_pretrained( 
+    model_id
+    )
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -224,7 +226,7 @@ def ask_rag(qry):
         source = os.path.basename(doc["metadata"].get("file_path" ,"Unknown file"))
         page = doc["metadata"].get("page" ,"Unknown page")
         text = doc["document"]
-        context.append(f"Source : {source} Page : {page} /n{text}")
+        context.append(f"Source : {source} Page : {page} \n{text}")
     prompt =  f"""
 You are a retrieval-based assistant.
 
@@ -246,27 +248,31 @@ query = {qry}
 Answer : """
     response = llm.invoke(prompt)
 
-    return response
+    final_resp = response.split("Answer : ")[-1].strip()
 
-qry = input("ENTER YOUR QUESTION : ")
-anwer =ask_rag (qry)
+    return final_resp
 
-print("LEMME THINKING BRUHH PLZ WAIT...")
-print(f"hmmm...alright herewegooo....{anwer}")
+import gradio 
 
-    
+def chatbot(qry) :
 
+    yield "hmmm lemme think bruhh"
 
+    ans = ask_rag(qry)
 
+    yield ans
 
+demo = gradio.Interface(
+    fn = chatbot,
+    inputs= gradio.Textbox(
+        label = "ASK QUESTION ! ",
+        placeholder=" ENTER YOUR QUESTION : "
+    ),
 
+    outputs=gradio.Textbox(
+        label = "ANSWER : "
+    ),
+    title= " RESEARCH ASSISTANT "
 
-
-
-
-        
-
-
-
-        
-        
+)
+demo.launch()
